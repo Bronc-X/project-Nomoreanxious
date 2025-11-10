@@ -1,0 +1,14 @@
+{
+  "rules": [
+    {
+      "conditions": { "primary_concern": "缓解焦虑", "activity_level": "低" },
+      "recommendation_short": "尝试5分钟步行",
+      "recommendation_long": "生理真相：您的神经系统可能已超负荷。最简单的行动是5分钟步行，运动能消耗皮质醇。您的第一个目标是将'焦虑'与'步行'联系起来。"
+    },
+    {
+      "conditions": { "primary_concern": "改善睡眠", "circadian_rhythm": "夜猫子型" },
+      "recommendation_short": "睡前1小时远离屏幕",
+      "recommendation_long": "生理真相：您的昼夜节律正在对抗人造光。蓝光会抑制褪黑激素。您的第一个目标是为大脑创造一个\"日落\"信号。"
+    }
+  ]
+}

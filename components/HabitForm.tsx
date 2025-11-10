@@ -1,0 +1,225 @@
+'use client';
+
+import { useState, FormEvent } from 'react';
+import { createClientSupabaseClient } from '@/lib/supabase-client';
+import { useRouter } from 'next/navigation';
+
+// 习惯表单数据类型定义
+interface HabitFormData {
+  habit_name: string;
+  cue: string;
+  response: string;
+  reward: string;
+}
+
+/**
+ * 习惯表单组件
+ * 用于添加新的习惯（基于 Cue-Response-Reward 模型）
+ */
+export default function HabitForm() {
+  const router = useRouter();
+  const supabase = createClientSupabaseClient();
+
+  const [formData, setFormData] = useState<HabitFormData>({
+    habit_name: '',
+    cue: '',
+    response: '',
+    reward: '',
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // 处理表单提交
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    // 验证必填字段
+    if (!formData.habit_name.trim()) {
+      setError('请填写习惯名称');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // 获取当前用户
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        setError('无法获取用户信息，请重新登录');
+        setIsLoading(false);
+        return;
+      }
+
+      // 插入新习惯到 user_habits 表
+      const { error: insertError } = await supabase.from('user_habits').insert({
+        user_id: user.id,
+        habit_name: formData.habit_name.trim(),
+        cue: formData.cue.trim() || null,
+        response: formData.response.trim() || null,
+        reward: formData.reward.trim() || null,
+      });
+
+      if (insertError) {
+        console.error('添加习惯时出错:', insertError);
+        setError('保存习惯时出错，请稍后重试');
+        setIsLoading(false);
+        return;
+      }
+
+      // 添加成功，重置表单并刷新页面
+      setFormData({
+        habit_name: '',
+        cue: '',
+        response: '',
+        reward: '',
+      });
+      setIsExpanded(false);
+      router.refresh();
+    } catch (err) {
+      console.error('提交表单时出错:', err);
+      setError('提交时发生错误，请稍后重试');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 处理输入变化
+  const handleChange = (field: keyof HabitFormData, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium text-gray-900">我的习惯</h3>
+        {!isExpanded && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(true)}
+            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+          >
+            + 添加新习惯
+          </button>
+        )}
+      </div>
+
+      {/* 添加习惯表单 */}
+      {isExpanded && (
+        <form onSubmit={handleSubmit} className="mb-6 space-y-4 border-b border-gray-200 pb-6">
+          {/* 错误提示 */}
+          {error && (
+            <div className="rounded-md bg-red-50 p-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+          {/* 习惯名称 */}
+          <div>
+            <label htmlFor="habit_name" className="block text-sm font-medium text-gray-700">
+              习惯名称 <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="habit_name"
+              name="habit_name"
+              type="text"
+              required
+              value={formData.habit_name}
+              onChange={(e) => handleChange('habit_name', e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="例如：下午步行"
+            />
+          </div>
+
+          {/* 线索 (Cue) */}
+          <div>
+            <label htmlFor="cue" className="block text-sm font-medium text-gray-700">
+              线索（触发习惯的提示）
+            </label>
+            <input
+              id="cue"
+              name="cue"
+              type="text"
+              value={formData.cue}
+              onChange={(e) => handleChange('cue', e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="例如：下午3点感到焦虑"
+            />
+            <p className="mt-1 text-xs text-gray-500">什么情况会触发这个习惯？</p>
+          </div>
+
+          {/* 反应 (Response) */}
+          <div>
+            <label htmlFor="response" className="block text-sm font-medium text-gray-700">
+              反应（习惯行为）
+            </label>
+            <input
+              id="response"
+              name="response"
+              type="text"
+              value={formData.response}
+              onChange={(e) => handleChange('response', e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="例如：步行5分钟"
+            />
+            <p className="mt-1 text-xs text-gray-500">您会采取什么行动？</p>
+          </div>
+
+          {/* 奖励 (Reward) */}
+          <div>
+            <label htmlFor="reward" className="block text-sm font-medium text-gray-700">
+              奖励（习惯带来的好处）
+            </label>
+            <input
+              id="reward"
+              name="reward"
+              type="text"
+              value={formData.reward}
+              onChange={(e) => handleChange('reward', e.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="例如：记录一件积极的小事"
+            />
+            <p className="mt-1 text-xs text-gray-500">这个习惯会带来什么好处？</p>
+          </div>
+
+          {/* 提交按钮 */}
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoading ? '保存中...' : '保存习惯'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsExpanded(false);
+                setFormData({
+                  habit_name: '',
+                  cue: '',
+                  response: '',
+                  reward: '',
+                });
+                setError(null);
+              }}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              取消
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+

@@ -1,0 +1,73 @@
+import { Tweet } from 'react-tweet';
+import 'react-tweet/theme.css';
+import { requireAuth } from '@/lib/auth-utils';
+import LogoutButton from '@/components/LogoutButton';
+
+// 硬编码的推文 ID 列表
+const TWEET_IDS = [
+  '1986977228165689658', // Svwang1
+  '1979696074978983954', // Svwang1
+  '1987810985558913191', // xYsfknBXPT6M0jo
+  '1987741929027813696', // xYsfknBXPT6M0jo
+];
+
+/**
+ * 灵感页面
+ * 显示来自健康与习惯养成领域的专业见解
+ */
+export default async function InspirationPage() {
+  // 要求用户必须登录
+  const { user } = await requireAuth();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* 导航栏 */}
+      <nav className="border-b border-gray-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-4">
+              <a href="/dashboard" className="text-xl font-semibold text-gray-900">
+                Metabasis
+              </a>
+              <span className="text-sm text-gray-500">/</span>
+              <span className="text-sm text-gray-600">灵感</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <a
+                href="/dashboard"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                返回仪表板
+              </a>
+              <span className="text-sm text-gray-600">{user.email}</span>
+              <LogoutButton />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* 主要内容 */}
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold text-gray-900">灵感板块</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            来自健康与习惯养成领域的专业见解
+          </p>
+        </div>
+
+        {/* 推文列表 */}
+        <div className="space-y-6">
+          {TWEET_IDS.map((tweetId) => (
+            <div
+              key={tweetId}
+              className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
+            >
+              <Tweet id={tweetId} />
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
