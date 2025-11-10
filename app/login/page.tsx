@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, Suspense } from 'react';
 import { createClientSupabaseClient } from '@/lib/supabase-client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 /**
- * 登录页面组件
- * 支持 Magic Link（邮件链接）和邮箱/密码登录
+ * 登录表单内容组件（使用 Suspense 包裹 useSearchParams）
  */
-export default function LoginPage() {
+function LoginFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isMagicLink, setIsMagicLink] = useState(false);
@@ -199,6 +198,26 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * 登录页面组件
+ * 支持 Magic Link（邮件链接）和邮箱/密码登录
+ */
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <p className="text-gray-600">加载中...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginFormContent />
+    </Suspense>
   );
 }
 

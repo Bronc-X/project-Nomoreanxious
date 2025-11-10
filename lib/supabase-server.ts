@@ -8,12 +8,9 @@ import { cookies } from 'next/headers';
  * @returns {ReturnType<typeof createServerComponentClient>} 服务器端 Supabase 客户端实例
  */
 export async function createServerSupabaseClient() {
-  // 在 Next.js 16 中，cookies() 是异步的，需要 await
-  const cookieStore = await cookies();
-  
   return createServerComponentClient(
     {
-      cookies: () => cookieStore,
+      cookies,
     },
     {
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,

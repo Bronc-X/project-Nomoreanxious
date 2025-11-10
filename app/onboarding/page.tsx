@@ -3,6 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import OnboardingForm from '@/components/OnboardingForm';
 
+// 标记为动态路由，因为使用了 cookies
+export const dynamic = 'force-dynamic';
+
 /**
  * Onboarding 页面
  * 新用户注册后需要填写的信息

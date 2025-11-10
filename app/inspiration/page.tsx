@@ -11,6 +11,9 @@ const TWEET_IDS = [
   '1987741929027813696', // xYsfknBXPT6M0jo
 ];
 
+// 标记为动态路由，因为使用了 cookies
+export const dynamic = 'force-dynamic';
+
 /**
  * 灵感页面
  * 显示来自健康与习惯养成领域的专业见解

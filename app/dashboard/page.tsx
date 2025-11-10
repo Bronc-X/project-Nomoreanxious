@@ -10,6 +10,9 @@ import HabitCompletionChart from '@/components/HabitCompletionChart';
 import BeliefScoreChart from '@/components/BeliefScoreChart';
 import XFeed from '@/components/XFeed';
 
+// 标记为动态路由，因为使用了 cookies
+export const dynamic = 'force-dynamic';
+
 /**
  * 仪表板页面（受保护的路由）
  * 只有登录用户才能访问
