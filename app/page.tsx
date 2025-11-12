@@ -11,9 +11,9 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   const session = await getServerSession();
 
-  // 如果用户已登录，重定向到仪表板
+  // 如果用户已登录，重定向到 landing 页面
   if (session) {
-    redirect('/dashboard');
+    redirect('/landing');
   }
 
   // 如果用户未登录，重定向到登录页面

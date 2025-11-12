@@ -39,12 +39,12 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAF6EF]">
       <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="rounded-lg border border-[#E7E1D6] bg-white p-8 shadow-sm">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-semibold text-gray-900">欢迎加入 Metabasis</h1>
-            <p className="mt-2 text-sm text-gray-600">
+            <h1 className="text-3xl font-semibold text-[#0B3D2E]">欢迎加入 No More anxious™</h1>
+            <p className="mt-2 text-sm text-[#0B3D2E]/80">
               请填写以下信息，帮助我们为您提供个性化的健康习惯建议
             </p>
           </div>

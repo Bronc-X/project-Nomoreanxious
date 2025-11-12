@@ -28,10 +28,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 如果已登录用户访问登录或注册页面，重定向到仪表板
+  // 如果已登录用户访问登录或注册页面，重定向到 landing 页面
   if (session && (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup')) {
     const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = '/dashboard';
+    redirectUrl.pathname = '/landing';
     return NextResponse.redirect(redirectUrl);
   }
 

@@ -9,6 +9,7 @@ import HabitList from '@/components/HabitList';
 import HabitCompletionChart from '@/components/HabitCompletionChart';
 import BeliefScoreChart from '@/components/BeliefScoreChart';
 import XFeed from '@/components/XFeed';
+import AnimateOnView from '@/components/AnimateOnView';
 
 // 标记为动态路由，因为使用了 cookies
 export const dynamic = 'force-dynamic';
@@ -138,16 +139,16 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAF6EF]">
       {/* 导航栏 */}
-      <nav className="border-b border-gray-200 bg-white">
+      <nav className="border-b border-[#E7E1D6] bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">Metabasis</h1>
+              <h1 className="text-xl font-semibold text-[#0B3D2E]">No More anxious™</h1>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user.email}</span>
+              <span className="text-sm text-[#0B3D2E]/70">{user.email}</span>
               <LogoutButton />
             </div>
           </div>
@@ -158,66 +159,73 @@ export default async function DashboardPage() {
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="space-y-6">
           {/* 欢迎信息 */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold text-gray-900">欢迎回来</h2>
-            <p className="mt-2 text-gray-600">
+          <AnimateOnView>
+            <div className="rounded-lg border border-[#E7E1D6] bg-white p-6 shadow-sm">
+              <h2 className="text-2xl font-semibold text-[#0B3D2E]">欢迎回来</h2>
+              <p className="mt-2 text-[#0B3D2E]/80">
               {profile?.username
                 ? `你好，${profile.username}！`
                 : '开始建立您的健康习惯之旅'}
             </p>
           </div>
+          </AnimateOnView>
 
           {/* 专属代理建议 */}
           {matchedRule && (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 shadow-sm">
-              <h3 className="text-xl font-semibold text-blue-900 mb-4">
+            <AnimateOnView>
+              <div className="rounded-lg border border-[#0B3D2E]/20 bg-[#0B3D2E]/5 p-6 shadow-sm">
+                <h3 className="text-xl font-semibold text-[#0B3D2E] mb-4">
                 您的专属代理建议
               </h3>
-              <p className="text-base leading-7 text-blue-800 whitespace-pre-line">
+                <p className="text-base leading-7 text-[#0B3D2E]/90 whitespace-pre-line">
                 {matchedRule.recommendation_long}
               </p>
             </div>
+            </AnimateOnView>
           )}
 
           {/* 用户资料信息 */}
           {profile && (
-            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-              <h3 className="text-lg font-medium text-gray-900">您的资料</h3>
+            <AnimateOnView>
+              <div className="rounded-lg border border-[#E7E1D6] bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-medium text-[#0B3D2E]">您的资料</h3>
               <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">用户名</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{profile.username || '未设置'}</dd>
+                    <dt className="text-sm font-medium text-[#0B3D2E]/70">用户名</dt>
+                    <dd className="mt-1 text-sm text-[#0B3D2E]">{profile.username || '未设置'}</dd>
                 </div>
                 {profile.age && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">年龄</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{profile.age} 岁</dd>
+                      <dt className="text-sm font-medium text-[#0B3D2E]/70">年龄</dt>
+                      <dd className="mt-1 text-sm text-[#0B3D2E]">{profile.age} 岁</dd>
                   </div>
                 )}
                 {profile.primary_concern && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">主要关注</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{profile.primary_concern}</dd>
+                      <dt className="text-sm font-medium text-[#0B3D2E]/70">主要关注</dt>
+                      <dd className="mt-1 text-sm text-[#0B3D2E]">{profile.primary_concern}</dd>
                   </div>
                 )}
                 {profile.activity_level && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">活动水平</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{profile.activity_level}</dd>
+                      <dt className="text-sm font-medium text-[#0B3D2E]/70">活动水平</dt>
+                      <dd className="mt-1 text-sm text-[#0B3D2E]">{profile.activity_level}</dd>
                   </div>
                 )}
                 {profile.circadian_rhythm && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">昼夜节律</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{profile.circadian_rhythm}</dd>
+                      <dt className="text-sm font-medium text-[#0B3D2E]/70">昼夜节律</dt>
+                      <dd className="mt-1 text-sm text-[#0B3D2E]">{profile.circadian_rhythm}</dd>
                   </div>
                 )}
               </dl>
             </div>
+            </AnimateOnView>
           )}
 
           {/* 图表板块 */}
           {(chartData.completionData.length > 0 || chartData.beliefData.length > 0) && (
+            <AnimateOnView>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {chartData.completionData.length > 0 && (
                 <HabitCompletionChart data={chartData.completionData} />
@@ -226,16 +234,21 @@ export default async function DashboardPage() {
                 <BeliefScoreChart data={chartData.beliefData} />
               )}
             </div>
+            </AnimateOnView>
           )}
 
           {/* 习惯板块 */}
+          <AnimateOnView>
           <div className="space-y-4">
             <HabitForm />
             <HabitList habits={habits} />
           </div>
+          </AnimateOnView>
 
           {/* X.com Feed 灵感板块 */}
+          <AnimateOnView>
           <XFeed />
+          </AnimateOnView>
         </div>
       </main>
     </div>

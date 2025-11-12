@@ -101,14 +101,14 @@ export default function OnboardingForm({ initialData }: OnboardingFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* 错误提示 */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-red-50 p-4 border border-red-200">
           <p className="text-sm text-red-800">{error}</p>
         </div>
       )}
 
       {/* 主要担忧 */}
       <div>
-        <label htmlFor="primary_concern" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="primary_concern" className="block text-sm font-medium text-[#0B3D2E]">
           您的主要担忧是什么？
         </label>
         <select
@@ -117,21 +117,21 @@ export default function OnboardingForm({ initialData }: OnboardingFormProps) {
           required
           value={formData.primary_concern}
           onChange={(e) => handleChange('primary_concern', e.target.value)}
-          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border border-[#E7E1D6] bg-[#FFFDF8] px-3 py-2 text-sm text-[#0B3D2E] focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E]/30"
         >
           <option value="">请选择...</option>
           <option value="缓解焦虑">缓解焦虑</option>
           <option value="改善睡眠">改善睡眠</option>
           <option value="提升精力">提升精力</option>
         </select>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-[#0B3D2E]/60">
           选择您最希望改善的健康方面
         </p>
       </div>
 
       {/* 活动水平 */}
       <div>
-        <label htmlFor="activity_level" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="activity_level" className="block text-sm font-medium text-[#0B3D2E]">
           您的活动水平如何？
         </label>
         <select
@@ -140,21 +140,21 @@ export default function OnboardingForm({ initialData }: OnboardingFormProps) {
           required
           value={formData.activity_level}
           onChange={(e) => handleChange('activity_level', e.target.value)}
-          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border border-[#E7E1D6] bg-[#FFFDF8] px-3 py-2 text-sm text-[#0B3D2E] focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E]/30"
         >
           <option value="">请选择...</option>
           <option value="低">低</option>
           <option value="中">中</option>
           <option value="高">高</option>
         </select>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-[#0B3D2E]/60">
           描述您目前的日常活动量
         </p>
       </div>
 
       {/* 昼夜节律 */}
       <div>
-        <label htmlFor="circadian_rhythm" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="circadian_rhythm" className="block text-sm font-medium text-[#0B3D2E]">
           您的作息类型是？
         </label>
         <select
@@ -163,13 +163,13 @@ export default function OnboardingForm({ initialData }: OnboardingFormProps) {
           required
           value={formData.circadian_rhythm}
           onChange={(e) => handleChange('circadian_rhythm', e.target.value)}
-          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border border-[#E7E1D6] bg-[#FFFDF8] px-3 py-2 text-sm text-[#0B3D2E] focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E]/30"
         >
           <option value="">请选择...</option>
           <option value="早鸟型">早鸟型</option>
           <option value="夜猫子型">夜猫子型</option>
         </select>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-[#0B3D2E]/60">
           选择最符合您作息习惯的类型
         </p>
       </div>
@@ -179,7 +179,7 @@ export default function OnboardingForm({ initialData }: OnboardingFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-md bg-gradient-to-r from-[#0b3d2e] via-[#0a3427] to-[#06261c] px-4 py-2 text-sm font-medium text-white shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/40 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? '保存中...' : '完成设置'}
         </button>

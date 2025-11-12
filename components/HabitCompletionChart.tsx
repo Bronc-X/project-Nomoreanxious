@@ -29,7 +29,7 @@ export default function HabitCompletionChart({ data }: HabitCompletionChartProps
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="text-lg font-medium text-gray-900 mb-4">习惯坚持曲线</h3>
-      <div className="h-64">
+      <div className="h-64 w-full min-w-0 min-h-[16rem]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

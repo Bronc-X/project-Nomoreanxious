@@ -11,10 +11,13 @@ export async function getServerSession() {
   try {
     const supabase = await createServerSupabaseClient();
     const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const {
       data: { session },
     } = await supabase.auth.getSession();
 
-    return session ? { user: session.user, session } : null;
+    return user && session ? { user, session } : null;
   } catch (error) {
     console.error('获取会话时出错:', error);
     return null;
