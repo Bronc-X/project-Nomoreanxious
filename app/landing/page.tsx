@@ -23,11 +23,12 @@ export default async function LandingPage() {
     // 并行获取数据，并添加超时兜底，防止阻塞渲染
     try {
       const profilePromise = withTimeout(
-        supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-          .single()
+        Promise.resolve( // <-- 修复了错误
+          supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
           .then(({ data, error }) => (!error && data ? data : null)),
         2000,
         null
