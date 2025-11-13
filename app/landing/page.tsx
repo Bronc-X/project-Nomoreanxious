@@ -7,69 +7,76 @@ export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
   const session = await getServerSession();
-  let profile = null;
+  let profile: any = null;
   let habitLogs: any[] = [];
   let dailyLogs: any[] = [];
+  const withTimeout = async <T,>(p: Promise<T>, ms = 2000, fallback: T): Promise<T> => {
+    return await Promise.race<T>([
+      p,
+      new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+    ]);
+  };
 
   if (session?.user) {
     const supabase = await createServerSupabaseClient();
 
-    // 获取用户资料
+    // 并行获取数据，并添加超时兜底，防止阻塞渲染
     try {
-      const { data, error } = await supabase
+      const profilePromise = withTimeout(
+        supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
-        .single();
+          .single()
+          .then(({ data, error }) => (!error && data ? data : null)),
+        2000,
+        null
+      );
 
-      if (!error && data) {
-        profile = data;
-      }
-    } catch (error) {
-      console.error('获取用户资料时出错:', error);
-    }
+      const dailyLogsPromise = withTimeout(
+        supabase
+          .from('daily_wellness_logs')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('log_date', { ascending: false })
+          .limit(14)
+          .then(({ data, error }) => (!error && data ? data : [])),
+        2000,
+        []
+      );
 
-    // 获取用户习惯和习惯记录
+      // 先并行拿到 profile 和 dailyLogs
+      const [profileResult, dailyLogsResult] = await Promise.all([profilePromise, dailyLogsPromise]);
+      profile = profileResult;
+      dailyLogs = dailyLogsResult;
+
+      // 如果拿到了 profile，再尝试拉取习惯及记录（加超时）
     if (profile) {
-      try {
-        // 获取用户习惯
-        const { data: habits } = await supabase
+        const habits = await withTimeout(
+          supabase
           .from('user_habits')
           .select('id')
-          .eq('user_id', session.user.id);
-
+            .eq('user_id', session.user.id)
+            .then(({ data }) => data || []),
+          1500,
+          []
+        );
         if (habits && habits.length > 0) {
-          const habitIds = habits.map(h => h.id);
-          // 获取习惯记录
-          const { data: logs } = await supabase
+          const habitIds = habits.map((h: any) => h.id);
+          habitLogs = await withTimeout(
+            supabase
             .from('habit_log')
             .select('*')
             .in('habit_id', habitIds)
-            .order('completed_at', { ascending: true });
-
-          if (logs) {
-            habitLogs = logs;
-          }
+              .order('completed_at', { ascending: true })
+              .then(({ data }) => data || []),
+            1500,
+            []
+          );
         }
-      } catch (error) {
-        console.error('获取习惯记录时出错:', error);
-      }
-    }
-
-    // 获取每日记录
-    try {
-      const { data: wellnessLogs, error: wellnessError } = await supabase
-        .from('daily_wellness_logs')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('log_date', { ascending: false })
-        .limit(14);
-
-      if (!wellnessError && wellnessLogs) {
-        dailyLogs = wellnessLogs;
       }
     } catch (error) {
-      console.error('获取每日记录时出错:', error);
+      console.error('Landing 数据加载并行流程出错:', error);
     }
   }
 

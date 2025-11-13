@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AnimatedSection from '@/components/AnimatedSection';
 import { createClientSupabaseClient } from '@/lib/supabase-client';
 
@@ -22,37 +23,49 @@ interface DailyCheckInPanelProps {
   initialLogs: DailyWellnessLog[];
 }
 
-const sleepDurationOptions = [
-  { label: '少于 4 小时', value: '180' },
-  { label: '4 小时', value: '240' },
-  { label: '5 小时', value: '300' },
-  { label: '6 小时', value: '360' },
-  { label: '6.5 小时', value: '390' },
-  { label: '7 小时', value: '420' },
-  { label: '7.5 小时', value: '450' },
-  { label: '8 小时', value: '480' },
-  { label: '9 小时以上', value: '540' },
+const sleepDurationMarks = [
+  { label: '少于4h', value: 180, indicator: '身体恢复不足' },
+  { label: '4h', value: 240, indicator: '极低睡眠量' },
+  { label: '5h', value: 300, indicator: '偏低睡眠量' },
+  { label: '6h', value: 360, indicator: '临界睡眠量' },
+  { label: '6.5h', value: 390, indicator: '轻度恢复' },
+  { label: '7h', value: 420, indicator: '标准恢复区间' },
+  { label: '7.5h', value: 450, indicator: '充足恢复' },
+  { label: '8h', value: 480, indicator: '优质恢复' },
+  { label: '9h+', value: 540, indicator: '超量恢复 / 需关注原因' },
 ];
 
-const sleepQualityOptions = [
-  { label: '恢复极佳', value: 'excellent' },
-  { label: '恢复良好', value: 'good' },
-  { label: '一般', value: 'average' },
-  { label: '浅睡多梦', value: 'poor' },
-  { label: '断续/失眠', value: 'very_poor' },
+const sleepQualityMarks = [
+  { label: '恢复极佳', value: 'excellent', indicator: '深睡比例高，醒来神清气爽' },
+  { label: '恢复良好', value: 'good', indicator: '睡眠结构良好，轻微起夜' },
+  { label: '一般', value: 'average', indicator: '可用睡眠，建议优化作息' },
+  { label: '浅睡多梦', value: 'poor', indicator: '建议减少屏幕刺激、晚餐过晚等因素' },
+  { label: '断续失眠', value: 'very_poor', indicator: '请优先处理焦虑源或寻求专业帮助' },
 ];
 
-const exerciseDurationOptions = [
-  { label: '未运动', value: '0' },
-  { label: '10 分钟', value: '10' },
-  { label: '20 分钟', value: '20' },
-  { label: '30 分钟', value: '30' },
-  { label: '45 分钟', value: '45' },
-  { label: '60 分钟', value: '60' },
-  { label: '90 分钟以上', value: '90' },
+const sleepQualityLabelMap = sleepQualityMarks.reduce<Record<string, string>>((acc, mark) => {
+  acc[mark.value] = mark.label;
+  return acc;
+}, {});
+
+const exerciseDurationMarks = [
+  { label: '未运动', value: 0, indicator: '今日未计入主动运动' },
+  { label: '10 分钟', value: 10, indicator: '轻量活动，适合启动身体' },
+  { label: '20 分钟', value: 20, indicator: '基础训练量' },
+  { label: '30 分钟', value: 30, indicator: '有效训练，代谢激活' },
+  { label: '45 分钟', value: 45, indicator: '中等负荷，心肺提升' },
+  { label: '60 分钟', value: 60, indicator: '较高训练量，注意补水' },
+  { label: '90 分钟+', value: 90, indicator: '高强度或长时间训练' },
 ];
 
-const moodOptions = ['专注平稳', '轻松愉悦', '略感疲惫', '焦虑紧绷', '情绪低落', '亢奋躁动'];
+const moodMarks = [
+  { label: '专注平稳', value: '专注平稳', indicator: '思路清晰，可安排挑战任务' },
+  { label: '轻松愉悦', value: '轻松愉悦', indicator: '积极情绪，适合社交与创作' },
+  { label: '略感疲惫', value: '略感疲惫', indicator: '需补充能量或短暂休息' },
+  { label: '焦虑紧绷', value: '焦虑紧绷', indicator: '建议进行呼吸/冥想调节' },
+  { label: '情绪低落', value: '情绪低落', indicator: '关注自身需求，避免高压任务' },
+  { label: '亢奋躁动', value: '亢奋躁动', indicator: '警惕过度激活，安排舒缓活动' },
+];
 
 const formatDate = (dateString: string) => {
   try {
@@ -64,6 +77,7 @@ const formatDate = (dateString: string) => {
 };
 
 export default function DailyCheckInPanel({ initialProfile, initialLogs }: DailyCheckInPanelProps) {
+  const router = useRouter();
   const supabase = createClientSupabaseClient();
   const [logs, setLogs] = useState<DailyWellnessLog[]>(initialLogs || []);
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -172,6 +186,11 @@ export default function DailyCheckInPanel({ initialProfile, initialLogs }: Daily
 
     setToast('今日记录已更新。');
     setIsSaving(false);
+    
+    // 保存成功后返回首页
+    setTimeout(() => {
+      router.push('/landing');
+    }, 1000);
   };
 
   const handleUpdateReminder = async () => {
@@ -240,61 +259,140 @@ export default function DailyCheckInPanel({ initialProfile, initialLogs }: Daily
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-[#0B3D2E] mb-2">睡眠时长</label>
-              <div className="grid grid-cols-2 gap-2">
-                {sleepDurationOptions.map((option) => (
-                  <button
-                    type="button"
-                    key={option.value}
-                    onClick={() => updateFormField('sleepDuration', option.value)}
-                    className={`rounded-md border px-3 py-2 text-sm transition-colors ${
-                      formState.sleepDuration === option.value
-                        ? 'border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md'
-                        : 'border-[#E7E1D6] bg-[#FFFDF8] text-[#0B3D2E] hover:border-[#0B3D2E]/40 hover:text-[#0B3D2E]'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+              <div className="rounded-lg border border-[#E7E1D6] bg-[#FFFDF8] px-4 py-3">
+                <input
+                  type="range"
+                  min={0}
+                  max={sleepDurationMarks.length - 1}
+                  step={1}
+                  value={
+                    Math.max(
+                      0,
+                      sleepDurationMarks.findIndex(
+                        (mark) => String(mark.value) === formState.sleepDuration
+                      )
+                    )
+                  }
+                  onChange={(event) => {
+                    const index = Number(event.target.value);
+                    const mark = sleepDurationMarks[index];
+                    updateFormField('sleepDuration', mark ? String(mark.value) : '');
+                  }}
+                  className="w-full accent-[#0B3D2E]"
+                />
+                <div className="mt-3 flex justify-between text-[10px] text-[#0B3D2E]/60">
+                  {sleepDurationMarks.map((mark, index) => (
+                    <span key={mark.value} className={index % 2 === 0 ? 'block' : 'hidden sm:block'}>
+                      {mark.label}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-3 rounded-md border border-[#0B3D2E]/10 bg-white px-3 py-2 text-xs text-[#0B3D2E]">
+                  <span className="font-semibold">
+                    {(() => {
+                      const index = sleepDurationMarks.findIndex(
+                        (mark) => String(mark.value) === formState.sleepDuration
+                      );
+                      const mark =
+                        index >= 0
+                          ? sleepDurationMarks[index]
+                          : sleepDurationMarks[Math.floor(sleepDurationMarks.length / 2)];
+                      return `${mark.label} · ${mark.indicator}`;
+                    })()}
+                  </span>
+                </div>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-[#0B3D2E] mb-2">睡眠评分</label>
-              <div className="grid grid-cols-2 gap-2">
-                {sleepQualityOptions.map((option) => (
-                  <button
-                    type="button"
-                    key={option.value}
-                    onClick={() => updateFormField('sleepQuality', option.value)}
-                    className={`rounded-md border px-3 py-2 text-sm transition-colors ${
-                      formState.sleepQuality === option.value
-                        ? 'border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md'
-                        : 'border-[#E7E1D6] bg-[#FFFDF8] text-[#0B3D2E] hover:border-[#0B3D2E]/40 hover:text-[#0B3D2E]'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+              <div className="rounded-lg border border-[#E7E1D6] bg-[#FFFDF8] px-4 py-3">
+                <input
+                  type="range"
+                  min={0}
+                  max={sleepQualityMarks.length - 1}
+                  step={1}
+                  value={
+                    Math.max(
+                      0,
+                      sleepQualityMarks.findIndex(
+                        (mark) => mark.value === formState.sleepQuality
+                      )
+                    )
+                  }
+                  onChange={(event) => {
+                    const index = Number(event.target.value);
+                    const mark = sleepQualityMarks[index];
+                    updateFormField('sleepQuality', mark ? mark.value : '');
+                  }}
+                  className="w-full accent-[#0B3D2E]"
+                />
+                <div className="mt-3 flex justify-between text-[10px] text-[#0B3D2E]/60">
+                  {sleepQualityMarks.map((mark) => (
+                    <span key={mark.value}>{mark.label}</span>
+                  ))}
+                </div>
+                <div className="mt-3 rounded-md border border-[#0B3D2E]/10 bg-white px-3 py-2 text-xs text-[#0B3D2E]">
+                  <span className="font-semibold">
+                    {(() => {
+                      const index = sleepQualityMarks.findIndex(
+                        (mark) => mark.value === formState.sleepQuality
+                      );
+                      const mark =
+                        index >= 0
+                          ? sleepQualityMarks[index]
+                          : sleepQualityMarks[Math.floor(sleepQualityMarks.length / 2)];
+                      return `${mark.label} · ${mark.indicator}`;
+                    })()}
+                  </span>
+                </div>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-[#0B3D2E] mb-2">运动时长</label>
-              <div className="grid grid-cols-2 gap-2">
-                {exerciseDurationOptions.map((option) => (
-                  <button
-                    type="button"
-                    key={option.value}
-                    onClick={() => updateFormField('exerciseDuration', option.value)}
-                    className={`rounded-md border px-3 py-2 text-sm transition-colors ${
-                      formState.exerciseDuration === option.value
-                        ? 'border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md'
-                        : 'border-[#E7E1D6] bg-[#FFFDF8] text-[#0B3D2E] hover:border-[#0B3D2E]/40 hover:text-[#0B3D2E]'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+              <div className="rounded-lg border border-[#E7E1D6] bg-[#FFFDF8] px-4 py-3">
+                <input
+                  type="range"
+                  min={0}
+                  max={exerciseDurationMarks.length - 1}
+                  step={1}
+                  value={
+                    Math.max(
+                      0,
+                      exerciseDurationMarks.findIndex(
+                        (mark) => String(mark.value) === formState.exerciseDuration
+                      )
+                    )
+                  }
+                  onChange={(event) => {
+                    const index = Number(event.target.value);
+                    const mark = exerciseDurationMarks[index];
+                    updateFormField('exerciseDuration', mark ? String(mark.value) : '');
+                  }}
+                  className="w-full accent-[#0B3D2E]"
+                />
+                <div className="mt-3 flex justify-between text-[10px] text-[#0B3D2E]/60">
+                  {exerciseDurationMarks.map((mark, index) => (
+                    <span key={mark.value} className={index % 2 === 0 ? 'block' : 'hidden sm:block'}>
+                      {mark.label}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-3 rounded-md border border-[#0B3D2E]/10 bg-white px-3 py-2 text-xs text-[#0B3D2E]">
+                  <span className="font-semibold">
+                    {(() => {
+                      const index = exerciseDurationMarks.findIndex(
+                        (mark) => String(mark.value) === formState.exerciseDuration
+                      );
+                      const mark =
+                        index >= 0
+                          ? exerciseDurationMarks[index]
+                          : exerciseDurationMarks[0];
+                      return `${mark.label} · ${mark.indicator}`;
+                    })()}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -302,46 +400,73 @@ export default function DailyCheckInPanel({ initialProfile, initialLogs }: Daily
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-[#0B3D2E] mb-2">心情状态</label>
-              <div className="grid grid-cols-2 gap-2">
-                {moodOptions.map((option) => (
-                  <button
-                    type="button"
-                    key={option}
-                    onClick={() => updateFormField('moodStatus', option)}
-                    className={`rounded-md border px-3 py-2 text-sm transition-colors ${
-                      formState.moodStatus === option
-                        ? 'border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md'
-                        : 'border-[#E7E1D6] bg-[#FFFDF8] text-[#0B3D2E] hover:border-[#0B3D2E]/40 hover:text-[#0B3D2E]'
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
+              <div className="rounded-lg border border-[#E7E1D6] bg-[#FFFDF8] px-4 py-3">
+                <input
+                  type="range"
+                  min={0}
+                  max={moodMarks.length - 1}
+                  step={1}
+                  value={
+                    Math.max(
+                      0,
+                      moodMarks.findIndex((mark) => mark.value === formState.moodStatus)
+                    )
+                  }
+                  onChange={(event) => {
+                    const index = Number(event.target.value);
+                    const mark = moodMarks[index];
+                    updateFormField('moodStatus', mark ? mark.value : '');
+                  }}
+                  className="w-full accent-[#0B3D2E]"
+                />
+                <div className="mt-3 flex justify-between text-[10px] text-[#0B3D2E]/60">
+                  {moodMarks.map((mark) => (
+                    <span key={mark.value} className="text-center">
+                      {mark.label}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-3 rounded-md border border-[#0B3D2E]/10 bg-white px-3 py-2 text-xs text-[#0B3D2E]">
+                  <span className="font-semibold">
+                    {(() => {
+                      const index = moodMarks.findIndex((mark) => mark.value === formState.moodStatus);
+                      const mark =
+                        index >= 0 ? moodMarks[index] : moodMarks[Math.floor(moodMarks.length / 2)];
+                      return `${mark.label} · ${mark.indicator}`;
+                    })()}
+                  </span>
+                </div>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-[#0B3D2E] mb-2">压力等级（1-10）</label>
-              <div className="grid grid-cols-5 gap-2">
-                {Array.from({ length: 10 }).map((_, index) => {
-                  const value = String(index + 1);
-                  return (
-                    <button
-                      type="button"
-                      key={value}
-                      onClick={() => updateFormField('stressLevel', value)}
-                      className={`rounded-md border px-3 py-2 text-sm transition-colors ${
-                        formState.stressLevel === value
-                          ? 'border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md'
-                          : 'border-[#E7E1D6] bg-[#FFFDF8] text-[#0B3D2E] hover:border-[#0B3D2E]/40 hover:text-[#0B3D2E]'
-                      }`}
-                    >
-                      {value}
-                    </button>
-                  );
-                })}
+              <div className="rounded-lg border border-[#E7E1D6] bg-[#FFFDF8] px-4 py-3">
+                <input
+                  type="range"
+                  min={1}
+                  max={10}
+                  step={1}
+                  value={formState.stressLevel ? Number(formState.stressLevel) : 5}
+                  onChange={(event) => updateFormField('stressLevel', event.target.value)}
+                  className="w-full accent-[#0B3D2E]"
+                />
+                <div className="mt-3 flex justify-between text-[10px] text-[#0B3D2E]/60">
+                  <span>1</span>
+                  <span>5</span>
+                  <span>10</span>
+                </div>
+                <div className="mt-3 rounded-md border border-[#0B3D2E]/10 bg-white px-3 py-2 text-xs text-[#0B3D2E]">
+                  <span className="font-semibold">
+                    {formState.stressLevel
+                      ? `当前压力指数：${formState.stressLevel} / 10`
+                      : '滑动以选择今日的压力感受'}
+                  </span>
+                </div>
               </div>
-              <p className="mt-2 text-xs text-[#0B3D2E]/60">7 以上意味着你的皮质醇可能处于高位，建议进行最低阻力的缓解动作。</p>
+              <p className="mt-2 text-xs text-[#0B3D2E]/60">
+                7 以上意味着你的皮质醇可能处于高位，建议进行最低阻力的缓解动作。
+              </p>
             </div>
 
             <div>
@@ -399,7 +524,13 @@ export default function DailyCheckInPanel({ initialProfile, initialLogs }: Daily
                     )}
                   </div>
                   <div className="mt-2 space-y-1.5">
-                    <p>睡眠：{log.sleep_duration_minutes ? `${Math.round(log.sleep_duration_minutes / 60 * 10) / 10} 小时` : '—'} · {log.sleep_quality ? sleepQualityOptions.find((option) => option.value === log.sleep_quality)?.label || '—' : '—'}</p>
+                    <p>
+                      睡眠：
+                      {log.sleep_duration_minutes
+                        ? `${Math.round((log.sleep_duration_minutes / 60) * 10) / 10} 小时`
+                        : '—'}{' '}
+                      · {log.sleep_quality ? sleepQualityLabelMap[log.sleep_quality] || '—' : '—'}
+                    </p>
                     <p>运动：{log.exercise_duration_minutes ? `${log.exercise_duration_minutes} 分钟` : '—'} · 心情：{log.mood_status || '—'}</p>
                     <p>压力：{log.stress_level ? `${log.stress_level}/10` : '—'}</p>
                     {log.notes && <p className="text-xs text-[#0B3D2E]/60">备注：{log.notes}</p>}

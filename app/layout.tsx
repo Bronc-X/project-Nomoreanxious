@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import RouteTransition from "@/components/RouteTransition";
 import MotionProvider from "@/components/MotionProvider";
+import AIAssistantFloatingButton from "@/components/AIAssistantFloatingButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <MotionProvider>
           <RouteTransition>{children}</RouteTransition>
+          <AIAssistantFloatingButton />
         </MotionProvider>
       </body>
     </html>

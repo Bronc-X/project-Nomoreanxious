@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import AIAssistantProfileForm from '@/components/AIAssistantProfileForm';
 import AIAssistantChat from '@/components/AIAssistantChat';
 import DailyCheckInPanel from '@/components/DailyCheckInPanel';
+import ProfileSettingsPanel from '@/components/ProfileSettingsPanel';
+import ReminderPreferencesPanel from '@/components/ReminderPreferencesPanel';
 import { analyzeUserProfile } from '@/lib/aiAnalysis';
 import Link from 'next/link';
 
@@ -104,6 +106,11 @@ export default async function AssistantPage({
     });
   }
 
+  // 根据panel参数显示不同内容
+  // 处理 searchParams 可能是数组的情况
+  const panelParam = searchParams?.panel;
+  const panel = Array.isArray(panelParam) ? panelParam[0] : (panelParam as string | undefined);
+
   // 显示 AI 助理聊天界面
   return (
     <div className="min-h-screen bg-[#FAF6EF]">
@@ -117,13 +124,23 @@ export default async function AssistantPage({
       {isAnalyzing && (
         <div className="mx-auto max-w-4xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="rounded-md border border-[#0B3D2E]/20 bg-[#0B3D2E]/5 px-3 py-2 text-sm text-[#0B3D2E]">
-            正在分析你的资料，请稍候… 你可以点击“返回主页”。
+            正在分析你的资料，请稍候… 你可以点击"返回主页"。
           </div>
         </div>
       )}
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <DailyCheckInPanel initialProfile={profile || { id: user.id }} initialLogs={dailyLogs} />
-        <AIAssistantChat initialProfile={profile || { id: user.id }} />
+        {panel === 'daily' ? (
+          <DailyCheckInPanel initialProfile={profile || { id: user.id }} initialLogs={dailyLogs} />
+        ) : panel === 'profile' ? (
+          <ProfileSettingsPanel initialProfile={profile || { id: user.id }} />
+        ) : panel === 'reminders' ? (
+          <ReminderPreferencesPanel initialProfile={profile || { id: user.id }} />
+        ) : (
+          <>
+            <DailyCheckInPanel initialProfile={profile || { id: user.id }} initialLogs={dailyLogs} />
+            <AIAssistantChat initialProfile={profile || { id: user.id }} />
+          </>
+        )}
       </div>
     </div>
   );

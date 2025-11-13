@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import XFeed from '@/components/XFeed';
 import PersonalizedLandingContent from '@/components/PersonalizedLandingContent';
+import WeatherGreeting from '@/components/WeatherGreeting';
+import HealingIllustration from '@/components/HealingIllustration';
 
 interface LandingContentProps {
   user?: {
@@ -58,12 +60,15 @@ export default function LandingContent({
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                   <div className="space-y-3">
                     <span className="text-xs font-semibold uppercase tracking-widest text-[#0B3D2E]/60">个人状态中心</span>
-                    <h2 className="text-2xl font-semibold text-[#0B3D2E] sm:text-3xl">{displayName}，欢迎回来</h2>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <h2 className="text-2xl font-semibold text-[#0B3D2E] sm:text-3xl">{displayName}，</h2>
+                      <WeatherGreeting />
+                    </div>
                     <p className="text-sm text-[#0B3D2E]/70">
                       {todayStatusText} · 最近记录：{todayLog ? '今天' : lastLog ? lastLogText : '暂无历史数据'}
                     </p>
                   </div>
-                  <div className="grid w-full max-w-xl grid-cols-2 gap-3 lg:max-w-md">
+                  <div className="grid w-full max-w-xl grid-cols-3 gap-3 lg:max-w-2xl">
                     <div className="rounded-lg border border-[#E7E1D6] bg-[#FAF6EF] px-3 py-3 text-center">
                       <p className="text-[11px] uppercase tracking-widest text-[#0B3D2E]/60">提醒时间</p>
                       <p className="mt-1 text-base font-semibold text-[#0B3D2E]">{reminderTime ?? '未设置'}</p>
@@ -72,20 +77,101 @@ export default function LandingContent({
                       <p className="text-[11px] uppercase tracking-widest text-[#0B3D2E]/60">今日状态</p>
                       <p className="mt-1 text-base font-semibold text-[#0B3D2E]">{todayStatusText}</p>
                     </div>
-                    <div className="col-span-2 rounded-lg border border-[#E7E1D6] bg-[#FFFDF8] px-3 py-3">
+                    <div className="rounded-lg border border-[#E7E1D6] bg-[#FAF6EF] px-3 py-3 text-center">
+                      <p className="text-[11px] uppercase tracking-widest text-[#0B3D2E]/60">7日完成率</p>
+                      <p className="mt-1 text-base font-semibold text-[#0B3D2E]">
+                        {(() => {
+                          const lastSevenDates = Array.from({ length: 7 }, (_, i) => {
+                            const date = new Date();
+                            date.setDate(date.getDate() - i);
+                            return date.toISOString().slice(0, 10);
+                          });
+                          const completionCount = lastSevenDates.filter(date => 
+                            safeDailyLogs.some(log => log.log_date === date)
+                          ).length;
+                          return `${Math.round((completionCount / 7) * 100)}%`;
+                        })()}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-[#E7E1D6] bg-[#FAF6EF] px-3 py-3 text-center">
+                      <p className="text-[11px] uppercase tracking-widest text-[#0B3D2E]/60">平均睡眠</p>
+                      <p className="mt-1 text-base font-semibold text-[#0B3D2E]">
+                        {(() => {
+                          const lastSevenLogs = safeDailyLogs
+                            .filter(log => {
+                              const logDate = new Date(log.log_date);
+                              const sevenDaysAgo = new Date();
+                              sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                              return logDate >= sevenDaysAgo;
+                            })
+                            .slice(0, 7);
+                          if (lastSevenLogs.length === 0) return '待记录';
+                          const sleepSum = lastSevenLogs.reduce((sum, log) => {
+                            if (log.sleep_duration_minutes) {
+                              return sum + (log.sleep_duration_minutes / 60);
+                            }
+                            return sum;
+                          }, 0);
+                          const sleepCount = lastSevenLogs.filter(log => log.sleep_duration_minutes).length;
+                          if (sleepCount === 0) return '待记录';
+                          return `${(sleepSum / sleepCount).toFixed(1)}h`;
+                        })()}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-[#E7E1D6] bg-[#FAF6EF] px-3 py-3 text-center">
+                      <p className="text-[11px] uppercase tracking-widest text-[#0B3D2E]/60">平均压力</p>
+                      <p className="mt-1 text-base font-semibold text-[#0B3D2E]">
+                        {(() => {
+                          const lastSevenLogs = safeDailyLogs
+                            .filter(log => {
+                              const logDate = new Date(log.log_date);
+                              const sevenDaysAgo = new Date();
+                              sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                              return logDate >= sevenDaysAgo;
+                            })
+                            .slice(0, 7);
+                          if (lastSevenLogs.length === 0) return '待记录';
+                          const stressSum = lastSevenLogs.reduce((sum, log) => {
+                            if (log.stress_level) return sum + log.stress_level;
+                            return sum;
+                          }, 0);
+                          const stressCount = lastSevenLogs.filter(log => log.stress_level).length;
+                          if (stressCount === 0) return '待记录';
+                          return `${(stressSum / stressCount).toFixed(1)}/10`;
+                        })()}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-[#E7E1D6] bg-[#FAF6EF] px-3 py-3 text-center">
+                      <p className="text-[11px] uppercase tracking-widest text-[#0B3D2E]/60">平均运动</p>
+                      <p className="mt-1 text-base font-semibold text-[#0B3D2E]">
+                        {(() => {
+                          const lastSevenLogs = safeDailyLogs
+                            .filter(log => {
+                              const logDate = new Date(log.log_date);
+                              const sevenDaysAgo = new Date();
+                              sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                              return logDate >= sevenDaysAgo;
+                            })
+                            .slice(0, 7);
+                          if (lastSevenLogs.length === 0) return '待记录';
+                          const exerciseSum = lastSevenLogs.reduce((sum, log) => {
+                            if (log.exercise_duration_minutes) return sum + log.exercise_duration_minutes;
+                            return sum;
+                          }, 0);
+                          const exerciseCount = lastSevenLogs.filter(log => log.exercise_duration_minutes).length;
+                          if (exerciseCount === 0) return '待记录';
+                          return `${Math.round(exerciseSum / exerciseCount)}min`;
+                        })()}
+                      </p>
+                    </div>
+                    <div className="col-span-3 rounded-lg border border-[#E7E1D6] bg-[#FFFDF8] px-3 py-3">
                       <p className="text-[11px] uppercase tracking-widest text-[#0B3D2E]/60">快速操作</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="mt-2 space-y-2">
                         <Link
                           href="/assistant?panel=daily"
                           className="inline-flex items-center rounded-md border border-[#0B3D2E]/30 px-3 py-1.5 text-xs font-medium text-[#0B3D2E] transition-colors hover:border-[#0B3D2E] hover:bg-[#FAF6EF]"
                         >
                           记录今日状态
-                        </Link>
-                        <Link
-                          href="/assistant?panel=profile"
-                          className="inline-flex items-center rounded-md border border-[#0B3D2E]/30 px-3 py-1.5 text-xs font-medium text-[#0B3D2E] transition-colors hover:border-[#0B3D2E] hover:bg-[#FAF6EF]"
-                        >
-                          调整个性化设定
                         </Link>
                       </div>
                     </div>
@@ -100,39 +186,209 @@ export default function LandingContent({
         </>
       )}
 
+      {/* Slogan Section - 居中显示 */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 relative overflow-hidden">
+        {/* 治愈插图装饰 */}
+        <div className="absolute top-10 left-10 opacity-20">
+          <HealingIllustration variant="leaf" />
+        </div>
+        <div className="absolute bottom-10 right-10 opacity-20">
+          <HealingIllustration variant="circle" />
+        </div>
+        <div className="absolute top-1/2 left-1/4 opacity-15">
+          <HealingIllustration variant="breath" />
+        </div>
+        <AnimatedSection inView variant="fadeUp" className="text-center relative z-10">
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="inline-block">
+              {['我', '们', '是'].map((char, idx) => (
+                <motion.span
+                  key={idx}
+                  className="text-base sm:text-lg text-[#0B3D2E]/80 font-medium inline-block cursor-default"
+                  whileHover={{ scale: 1.3, y: -2 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  style={{ display: 'inline-block' }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#0B3D2E] tracking-tight">
+              {['No', 'More', 'anxious'].map((word, idx) => (
+                <motion.span
+                  key={idx}
+                  className="inline-block cursor-default"
+                  whileHover={{ scale: 1.15, y: -3 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  style={{ display: 'inline-block', marginRight: '0.2em' }}
+                >
+                  {word}
+                </motion.span>
+              ))}
+              <motion.sup
+                className="text-2xl sm:text-3xl md:text-4xl align-super inline-block cursor-default"
+                whileHover={{ scale: 1.4, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                ™
+              </motion.sup>
+            </h1>
+            <div className="mt-8 max-w-2xl mx-auto">
+              <p className="text-xl sm:text-2xl md:text-3xl italic text-[#0B3D2E] font-light leading-relaxed">
+                {['我们的逻辑很简单：', '通过解决焦虑，', '来解锁身体的潜能。'].map((phrase, idx) => (
+                  <motion.span
+                    key={idx}
+                    className="inline-block cursor-default"
+                    whileHover={{ scale: 1.1, y: -2 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    style={{ display: 'inline-block' }}
+                  >
+                    {phrase}
+                  </motion.span>
+                ))}
+              </p>
+              <motion.div
+                className="mt-4 text-sm sm:text-base text-[#0B3D2E]/60 font-medium inline-block cursor-default"
+                whileHover={{ scale: 1.2, x: 5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                — ASD
+              </motion.div>
+            </div>
+          </div>
+        </AnimatedSection>
+      </section>
+
       {/* Hero */}
       <section className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${user && profile ? 'pt-6' : 'pt-10'}`}>
         <AnimatedSection inView variant="fadeUp" className="grid lg:grid-cols-2 gap-8 items-center">
           <div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[#0B3D2E]">
               我们来聊聊你的状态
-              <span className="block text-2xl sm:text-3xl md:text-4xl mt-1">（坦诚地）</span>
+              <span className="block text-2xl sm:text-3xl md:text-4xl mt-1">（*坦诚地）</span>
             </h1>
 
             {/* 副标题/核心价值 */}
-            <p className="mt-5 text-base leading-7 text-[#0B3D2E]/80">30+的你正处于你的人生上升期</p>
+            <p className="mt-5 text-base leading-7 text-[#0B3D2E]/80">30+的你，正处于你人生的上升期。</p>
             <p className="mt-3 text-base leading-7 text-[#0B3D2E]/80">事业有成，思维敏锐。</p>
             <p className="mt-3 text-base leading-7 text-[#0B3D2E]/80">但你也开始注意到一些"变化"：</p>
-            <p className="mt-2 text-base leading-7 text-[#0B3D2E]/80">新陈代谢不再是你最好的朋友；熬夜之后恢复时间变得很长；睡眠没有以前更好...</p>
+            <p className="mt-2 text-base leading-7 text-[#0B3D2E]/80">新陈代谢不再是你最好的朋友；熬夜之后恢复时间变得很长；睡眠没有以前好...</p>
 
             {/* 强调段（合并为同一框内） */}
             <div className="mt-5 rounded-lg border border-[#E7E1D6] bg-[#0B3D2E]/5 p-4">
-              <p className="text-lg leading-8 text-[#0B3D2E] font-semibold">欢迎来到一个不同的世界。我们坦率地接受生理科学：</p>
+              <p className="text-lg leading-8 text-[#0B3D2E] font-semibold">欢迎来到一个不同的世界。我们坦诚地接受生理科学：</p>
               <p className="mt-2 text-base leading-7 text-[#0B3D2E] font-bold">生理上的新陈代谢正在发生不可逆转的改变。我们不与真相为敌。</p>
             </div>
 
-            {/* 品牌强调 */}
-            <div className="mt-6">
-              <div className="text-center my-6">
-                <span className="block text-base sm:text-lg text-[#0B3D2E]/80">我们是</span>
-                <span className="block text-2xl sm:text-3xl font-extrabold text-[#0B3D2E] mt-1">No More anxious™</span>
+            {/* 版本对比 */}
+            <div id="pricing" className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 scroll-mt-20">
+              {/* Free版 */}
+              <div className="rounded-lg border border-[#E7E1D6] bg-white p-6 shadow-sm flex flex-col">
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-semibold text-[#0B3D2E] mb-2">Free版</h3>
+                  <div className="text-3xl font-bold text-[#0B3D2E]">￥0</div>
+                </div>
+                <ul className="space-y-3 text-sm text-[#0B3D2E]/80 flex-1">
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>基础生理数据记录</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>每日状态记录</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>基础数据可视化</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>社区内容浏览</span>
+                  </li>
+                </ul>
+                <button className="mt-auto rounded-md border border-[#E7E1D6] bg-white text-[#0B3D2E] px-4 py-2 text-sm font-medium hover:bg-[#FAF6EF] transition-colors">
+                  免费使用
+                </button>
               </div>
-              {/* 创始人名言（品牌下方） */}
-              <div className="mt-4 border-l-2 border-[#0B3D2E]/20 pl-4">
-                <p className="text-base italic text-[#0B3D2E]">我们的逻辑很简单：通过解决焦虑，来解锁身体的潜能。</p>
-                <div className="mt-2 text-sm text-[#0B3D2E]/60">— ASD</div>
+
+              {/* Pro版 */}
+              <Link href="/pricing?plan=pro" className="rounded-lg border-2 border-[#0B3D2E] bg-gradient-to-br from-[#0B3D2E]/5 to-white p-6 shadow-md relative flex flex-col cursor-pointer hover:shadow-lg transition-all">
+                <div className="absolute top-0 right-0 bg-[#0B3D2E] text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg">
+                  推荐
+                </div>
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-semibold text-[#0B3D2E] mb-2">Pro版</h3>
+                  <div className="text-3xl font-bold text-[#0B3D2E]">￥15<span className="text-base font-normal text-[#0B3D2E]/60">/月</span></div>
               </div>
+                <ul className="space-y-3 text-sm text-[#0B3D2E]/80 flex-1">
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>Free版所有功能</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>AI个性化建议</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>高级数据分析和趋势预测</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>智能提醒功能</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>优先客服支持</span>
+                  </li>
+                </ul>
+                <button className="mt-auto rounded-md bg-gradient-to-r from-[#0b3d2e] via-[#0a3427] to-[#06261c] text-white px-4 py-2 text-sm font-medium hover:shadow-md transition-all">
+                  立即升级
+                </button>
+              </Link>
+
+              {/* Pro+版 */}
+              <Link href="/pricing?plan=proplus" className="rounded-lg border border-[#E7E1D6] bg-white p-6 shadow-sm flex flex-col cursor-pointer hover:shadow-lg transition-all">
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-semibold text-[#0B3D2E] mb-2">Pro+版</h3>
+                  <div className="text-3xl font-bold text-[#0B3D2E]">￥99<span className="text-base font-normal text-[#0B3D2E]/60">/月</span></div>
+              </div>
+                <ul className="space-y-3 text-sm text-[#0B3D2E]/80 flex-1">
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>Pro版所有功能</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>一对一健康顾问咨询</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>定制化健康计划</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>深度生理信号分析</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>专属AI助理</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>无限数据导出</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#0B3D2E] mr-2">✓</span>
+                    <span>24/7优先支持</span>
+                  </li>
+                </ul>
+                <button className="mt-auto rounded-md border border-[#0B3D2E] bg-white text-[#0B3D2E] px-4 py-2 text-sm font-medium hover:bg-[#0B3D2E] hover:text-white transition-colors">
+                  选择Pro+
+                </button>
+              </Link>
             </div>
+
             <div className="mt-6 flex items-center gap-3">
               {!user && (
                 <>
@@ -155,7 +411,11 @@ export default function LandingContent({
             </div>
             {!user && <p className="mt-2 text-xs text-[#0B3D2E]/60">加入Beta候补名单。</p>}
           </div>
-          <div className="bg-[#FFFDF8] border border-[#E7E1D6] rounded-lg p-4">
+          <div className="bg-[#FFFDF8] border border-[#E7E1D6] rounded-lg p-4 relative">
+            {/* 治愈插图装饰 */}
+            <div className="absolute top-2 right-2 opacity-10">
+              <HealingIllustration variant="wave" className="w-16 h-8" />
+            </div>
             <StatCurve />
             <p className="mt-2 text-xs text-[#0B3D2E]/60">
               基于您的Ai助手对日常活动水平，您的基础数据表现，以及日常你的问题汇总，经过算法来呈现您身体状态的改善。
@@ -179,7 +439,7 @@ export default function LandingContent({
       </section>
 
       {/* Insights title (kept), cards removed */}
-      <section id="insights" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <section id="how" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 scroll-mt-20">
         <AnimatedSection inView variant="fadeUp">
           <h2 className="text-2xl sm:text-3xl font-semibold text-[#0B3D2E] leading-tight">
             <span className="block">健康产业是"噪音"。</span>
@@ -264,7 +524,7 @@ export default function LandingContent({
       </section>
 
       {/* Core Solution Section (moved below insights) */}
-      <section id="solution" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <section id="model" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 scroll-mt-20">
         <AnimatedSection inView variant="fadeUp">
           <div className="rounded-2xl border border-[#E7E1D6] bg-[#FFFDF8] p-6">
             <h2 className="text-2xl sm:text-3xl font-semibold text-[#0B3D2E]">解决思路</h2>
@@ -374,7 +634,7 @@ export default function LandingContent({
       </section>
 
       {/* Authority Feed (static) */}
-      <section id="authority" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6">
+      <section id="authority" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 scroll-mt-20">
         <AnimatedSection inView variant="fadeUp" className="rounded-xl border border-[#E7E1D6] bg-white p-6">
           <h2 className="text-2xl font-semibold text-[#0B3D2E]">一个没有"噪音"的信息流。</h2>
           <p className="mt-3 text-[#0B3D2E]/80">
@@ -404,7 +664,7 @@ export default function LandingContent({
 
       {/* CTA with code vibe */}
       {!user && (
-        <section id="cta" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
+        <section id="cta" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 scroll-mt-20">
           <AnimatedSection inView variant="springScaleIn" className="rounded-xl border border-[#E7E1D6] bg-white p-6">
             <h3 className="text-xl font-semibold text-[#0B3D2E]">准备好 No More anxious™ 了吗？</h3>
             <p className="mt-2 text-[#0B3D2E]/80">获取抢先体验版。</p>

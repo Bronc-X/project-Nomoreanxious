@@ -81,6 +81,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // 优化性能
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: true,
 };
 
 export default nextConfig;

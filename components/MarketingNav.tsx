@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import AnimatedSection from '@/components/AnimatedSection';
 import UserProfileMenu from '@/components/UserProfileMenu';
 
@@ -16,31 +17,93 @@ interface MarketingNavProps {
 }
 
 export default function MarketingNav({ user, profile }: MarketingNavProps) {
+  const pathname = usePathname();
+  
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // 如果不在landing页面，先跳转到landing页面
+    if (pathname !== '/landing') {
+      e.preventDefault();
+      window.location.href = `/landing${href}`;
+      return;
+    }
+    
+    // 在landing页面，直接滚动到锚点
+    e.preventDefault();
+    const targetId = href.replace('#', '');
+    const element = document.getElementById(targetId);
+    if (element) {
+      const offset = 80; // 导航栏高度 + 一些间距
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <AnimatedSection inView variant="fadeIn" className="sticky top-0 z-30 bg-[#FAF6EF]/90 backdrop-blur border-b border-[#E7E1D6]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
+            <Link href="/landing" className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full bg-[#0B3D2E]" />
             <span className="text-sm font-semibold tracking-wide text-[#0B3D2E]">
               No More anxious™
             </span>
+            </Link>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="#how" className="text-[#0B3D2E]/80 hover:text-[#0B3D2E]">核心功能</Link>
-            <Link href="#model" className="text-[#0B3D2E]/80 hover:text-[#0B3D2E]">科学模型</Link>
-            <Link href="#authority" className="text-[#0B3D2E]/80 hover:text-[#0B3D2E]">权威洞察</Link>
+            <a 
+              href="#how" 
+              onClick={(e) => handleAnchorClick(e, '#how')}
+              className="text-[#0B3D2E]/80 hover:text-[#0B3D2E] transition-colors cursor-pointer"
+            >
+              核心功能
+            </a>
+            <a 
+              href="#model" 
+              onClick={(e) => handleAnchorClick(e, '#model')}
+              className="text-[#0B3D2E]/80 hover:text-[#0B3D2E] transition-colors cursor-pointer"
+            >
+              科学模型
+            </a>
+            <a 
+              href="#authority" 
+              onClick={(e) => handleAnchorClick(e, '#authority')}
+              className="text-[#0B3D2E]/80 hover:text-[#0B3D2E] transition-colors cursor-pointer"
+            >
+              权威洞察
+            </a>
+            <a 
+              href="#pricing" 
+              onClick={(e) => handleAnchorClick(e, '#pricing')}
+              className="text-[#0B3D2E]/80 hover:text-[#0B3D2E] transition-colors cursor-pointer"
+            >
+              升级
+            </a>
             {user ? (
+              <>
+                <Link
+                  href="/assistant"
+                  className="inline-flex items-center rounded-md bg-gradient-to-r from-[#0b3d2e] via-[#0a3427] to-[#06261c] px-4 py-2 text-white hover:shadow-md transition-all"
+                >
+                  AI 助理
+                </Link>
               <UserProfileMenu user={user} profile={profile} />
+              </>
             ) : (
               <>
-                <Link href="/login" className="text-[#0B3D2E]/80 hover:text-[#0B3D2E]">登录</Link>
-                <Link
+                <Link href="/login" className="text-[#0B3D2E]/80 hover:text-[#0B3D2E] transition-colors">登录</Link>
+                <a 
                   href="#cta"
-                  className="inline-flex items-center rounded-md bg-[#0B3D2E] px-3 py-1.5 text-white hover:bg-[#0a3629] transition-colors"
+                  onClick={(e) => handleAnchorClick(e, '#cta')}
+                  className="inline-flex items-center rounded-md bg-[#0B3D2E] px-3 py-1.5 text-white hover:bg-[#0a3629] transition-colors cursor-pointer"
                 >
                   获取早期访问权限
-                </Link>
+                </a>
               </>
             )}
           </nav>
